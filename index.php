@@ -7,7 +7,12 @@
 	Author URI: http://www.github.com/edygar
 */
 
+/**
+ * When directly accessed, this script counts the hit on given post ID and then
+ * responds the user with a transparent pixel
+ */
 if ( ! defined( 'ABSPATH' ) ) {
+	/* Includes the wordpress funcionality */
 	define( 'WP_USE_THEMES', false );
 	$rootpath = dirname(dirname(__DIR__));
 
@@ -16,10 +21,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	else
 		include(dirname($rootpath).'/wp-config.php');
 
+	// Retrieves the Post ID from the URL and increments its counter
 	$info = [];
 	if (preg_match('@/(?P<post_id>[0-9]+)\..*?$@', $_SERVER['REQUEST_URI'], $info))
 		hit_post($info['post_id']);
 
+	// Avoids caching and responds with a transparent png pixel
 	header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
 	header("Pragma: no-cache"); // HTTP 1.0.
 	header("Expires: 0"); // Proxies.
@@ -27,6 +34,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	echo base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII=');
 }
 
+/**
+ * Provides the hit count endpoint url
+ */
 function hit_counter_url($post_id = null) {
 	if ($post_id === null)
 		$post_id = get_the_ID();
@@ -34,20 +44,30 @@ function hit_counter_url($post_id = null) {
 	return plugins_url("simple-image-hit-counter/index.php/$post_id.png");
 }
 
+/**
+ * Generates the image tag with the hit count endpoint url
+ */
 function get_hit_counter ($id = null) {
 	return "<img role='presentation' alt='' src='".hit_counter_url($id)."'/>";
 }
 
+/**
+ * Prints the image Tag with the hit count endpoint url
+ */
 function the_hit_counter ($id = null) {
 	echo get_hit_counter();
 }
 
-
-function post_hit_score() {
-	return (post_hits(get_the_ID())/(time()/strtotime(get_post()->post_date)));
+/**
+ * Calculates the the post hit score
+ */
+function post_hit_score($post_id = null) {
+	return (post_hits($post_id)/(time()/strtotime(get_post($post_id)->post_date)));
 }
 
-
+/**
+ * filter to be applied on queries in order to expose the meta with the count
+ */
 function join_hit_count($statement, $wp_query) {
 	global $wpdb;
 	return "$statement
@@ -60,12 +80,15 @@ function join_hit_count($statement, $wp_query) {
 }
 
 
+/**
+ * Order the posts accordingly to both its score and its date, using the Hacker
+ * News formula on ordering. Requires the `join_hit_count` filter to work.
+ *
+ * Hackenews algorithm
+ * http://amix.dk/blog/post/19574
+ */
 function order_by_hit_count($statement, $wp_query) {
 	global $wpdb;
-	/*
-	  Hackenews algorithm
-	  http://amix.dk/blog/post/19574
-	*/
 	return "
 		( CAST(hit_count.meta_value as UNSIGNED)
 			/ power(
@@ -81,6 +104,9 @@ function order_by_hit_count($statement, $wp_query) {
 }
 
 
+/** 
+ * Increments the hit counter for a given post
+ */
 function hit_post($post_id) {
 	$count_key = 'post_views_count';
 	$count = get_post_meta($post_id, $count_key, true);
@@ -95,7 +121,13 @@ function hit_post($post_id) {
 	}
 }
 
+/**
+ * Provides the current counting for a given post
+ */
 function post_hits($post_id){
+	if ($post_id === null) 
+		$post_id = get_the_ID();
+
 	$count_key = 'post_views_count';
 	$count = get_post_meta($post_id, $count_key, true);
 
