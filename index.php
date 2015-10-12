@@ -1,7 +1,7 @@
 <?php
 /*
 	Plugin Name: Simple Image Hit Counter
-	Version: 0.1-alpha
+	Version: 0.1
 	Description: Provides a endpoint to count hits on a given post
 	Author: Edygar de Lima Oliveira <edygardelima@gmail.com>
 	Author URI: http://www.github.com/edygar
@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 function hit_counter_url($post_id = null) {
-	if ($post_id === null) 
+	if ($post_id === null)
 		$post_id = get_the_ID();
 
 	return plugins_url("simple-image-hit-counter/index.php/$post_id.png");
@@ -64,7 +64,7 @@ function order_by_hit_count($statement, $wp_query) {
 	global $wpdb;
 	/*
 	  Hackenews algorithm
-	  http://amix.dk/blog/post/19574	
+	  http://amix.dk/blog/post/19574
 	*/
 	return "
 		( CAST(hit_count.meta_value as UNSIGNED)
@@ -85,7 +85,7 @@ function hit_post($post_id) {
 	$count_key = 'post_views_count';
 	$count = get_post_meta($post_id, $count_key, true);
 
-	if($count == '') { 
+	if($count == '') {
 		$count = 1;
 		delete_post_meta($post_id, $count_key);
 		add_post_meta($post_id, $count_key, '0');
