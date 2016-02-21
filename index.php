@@ -104,7 +104,7 @@ function order_by_hit_count($statement, $wp_query) {
 }
 
 
-/** 
+/**
  * Increments the hit counter for a given post
  */
 function hit_post($post_id) {
@@ -124,8 +124,8 @@ function hit_post($post_id) {
 /**
  * Provides the current counting for a given post
  */
-function post_hits($post_id){
-	if ($post_id === null) 
+function post_hits($post_id = null){
+	if ($post_id === null)
 		$post_id = get_the_ID();
 
 	$count_key = 'post_views_count';
